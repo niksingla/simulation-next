@@ -1,3 +1,10 @@
+
+# Next.JS based Simulation App
+This is a **Simulation-Based Web Application** developed using **Next.js**, **TypeScript**, and **Tailwind CSS**. The platform enables users to interact with various simulation modules through a clean, fast, and responsive UI.
+
+## Live Demo
+https://ecomm-store-amber.vercel.app/
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
