@@ -1,6 +1,5 @@
 "use client"
 
-import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import { FaAtom, FaBusinessTime, FaChartLine, FaFlask } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
@@ -20,13 +19,6 @@ const poppins = Poppins({
   subsets: ['latin', 'latin-ext'],
 });
 
-const metadata: Metadata = {
-  title: 'Task 1',
-  description: 'An Outlier Task',
-};
-const viewport: Viewport = {
-  themeColor: '#18181b',
-};
 
 const simulations = {
   chemistry: [
@@ -364,11 +356,11 @@ const simulations = {
       ],
       widget: ({ values }: { values: string }) => {
         const arr = values.split(',').map(Number);
-        let stack: number[] = [];
+        const stack: number[] = [];
         let root = -Infinity;
         let isValid = true;
 
-        for (let value of arr) {
+        for (const value of arr) {
           if (value < root) {
             isValid = false;
             break;
