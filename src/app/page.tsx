@@ -1,27 +1,29 @@
 "use client"
 
-import { Poppins } from "next/font/google";
+import { Lato } from "next/font/google";
 import { FaAtom, FaBusinessTime, FaChartLine, FaFlask } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
-import { BeatLoader } from "react-spinners";
+import { BeatLoader, PropagateLoader } from "react-spinners";
 import { CiSearch } from "react-icons/ci";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { IoCloseCircle } from "react-icons/io5";
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { motion } from "motion/react"
+import debounce from "lodash.debounce";
 
-const poppins = Poppins({
+const lato = Lato({
   display: 'swap',
+  fallback: ['Arial', 'open-sans'],
   preload: false,
   style: ['normal', 'italic'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  subsets: ['latin', 'latin-ext'],
+  weight: ['100', '300', '400', '700', '900'],
+  subsets: ['latin', "latin-ext"],
 });
 
 
 const simulations = {
-  chemistry: [
+  Science: [
     {
       id: 'acid-base-reaction',
       label: 'Acid-Base Reaction',
@@ -459,22 +461,22 @@ const simulations = {
 };
 
 const categoriesHome = {
-  Chemistry: {
-    title: 'Chemistry',
+  Science: {
+    title: 'Science',
     icon: <FaFlask />,
-    cardBg: 'bg-gray-100',
-    iconBg: 'bg-amber-500/25',
-    iconColor: 'text-amber-600',
+    cardBg: 'bg-white/5 backdrop-blur-sm',
+    iconBg: 'bg-amber-500/20',
+    iconColor: 'text-amber-400',
     buttonColor: 'bg-amber-500 hover:bg-amber-600',
-    description: 'Explore interactive chemistry models and simulations.',
+    description: 'Explore interactive Science models and simulations.',
     buttonText: 'Start Learning',
   },
   Physics: {
     title: 'Physics',
     icon: <FaAtom />,
-    cardBg: 'bg-blue-50',
-    iconBg: 'bg-indigo-500/25',
-    iconColor: 'text-indigo-600',
+    cardBg: 'bg-white/5 backdrop-blur-sm',
+    iconBg: 'bg-indigo-500/20',
+    iconColor: 'text-indigo-400',
     buttonColor: 'bg-indigo-500 hover:bg-indigo-600',
     description: 'Dive deep into physics simulations and experiments.',
     buttonText: 'Explore Now',
@@ -482,9 +484,9 @@ const categoriesHome = {
   DataTrees: {
     title: 'Data Trees',
     icon: <FaBusinessTime />,
-    cardBg: 'bg-purple-50',
-    iconBg: 'bg-purple-500/25',
-    iconColor: 'text-purple-600',
+    cardBg: 'bg-white/5 backdrop-blur-sm',
+    iconBg: 'bg-purple-500/20',
+    iconColor: 'text-purple-400',
     buttonColor: 'bg-purple-500 hover:bg-purple-600',
     description: 'Learn and visualize complex data structures and algorithms.',
     buttonText: 'Get Started',
@@ -492,14 +494,15 @@ const categoriesHome = {
   Finance: {
     title: 'Finance',
     icon: <FaChartLine />,
-    cardBg: 'bg-green-50',
-    iconBg: 'bg-emerald-500/25',
-    iconColor: 'text-emerald-600',
+    cardBg: 'bg-white/5 backdrop-blur-sm',
+    iconBg: 'bg-emerald-500/20',
+    iconColor: 'text-emerald-400',
     buttonColor: 'bg-emerald-500 hover:bg-emerald-600',
     description: 'Master financial modeling and simulations.',
     buttonText: 'Start Exploring',
   },
 };
+
 
 
 const Modal = ({
@@ -514,15 +517,24 @@ const Modal = ({
   const [isVisible, setIsVisible] = useState(false);
   const [inputs, setInputs] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [outcomeLoader, setOutcomeLoader] = useState(true);
 
   useEffect(() => {
     if (isShowModal) {
-      setIsVisible(true);      
+      document.body.classList.add('overflow-hidden');
+      setIsVisible(true);
     }
     const timer = setTimeout(() => {
       setIsLoading(false);
+      setTimeout(() => {
+        setOutcomeLoader(false)
+      }, 1000);
     }, 3000);
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(timer)
+      document.body.classList.remove('overflow-hidden');
+    };
   }, [isShowModal]);
 
 
@@ -547,6 +559,7 @@ const Modal = ({
             setIsVisible(false);
             closeModal();
             setIsLoading(true);
+            setOutcomeLoader(true);
           }
         },
         {
@@ -554,7 +567,8 @@ const Modal = ({
           onClick: () => {
           }
         }
-      ]
+      ],
+      overlayClassName: 'modal-overlay',
     });
   };
 
@@ -575,11 +589,17 @@ const Modal = ({
       ...prev,
       [id]: value,
     }));
+    setOutcomeLoader(true);
+    (debounce(() => {
+      setTimeout(()=>{
+        setOutcomeLoader(false)
+      },1000)
+    }, 2000))();
   };
 
   return isShowModal || isVisible ? (
     <div
-      className={`fixed inset-0 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)] flex justify-center items-center z-50 transition-opacity duration-200 ${isVisible ? "opacity-100" : "opacity-0"}`}
+      className={`fixed inset-0 flex justify-center items-center z-50 transition-opacity duration-200 modal-overlay ${isVisible ? "opacity-100" : "opacity-0"}`}
       style={{
         transition: "opacity 1s ease-in-out",
       }}
@@ -588,26 +608,27 @@ const Modal = ({
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{
-            duration: 1,
-            scale: { type: "spring", visualDuration: 1, bounce: 0.5 },
+          duration: 1,
+          scale: { type: "spring", visualDuration: 1, bounce: 0.5 },
         }}
-        className="relative bg-white bg-[radial-gradient(100%_50%_at_50%_0%,rgba(0,163,255,0.13)_0,rgba(0,163,255,0)_50%,rgba(0,163,255,0)_100%)] p-8 rounded-lg w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/3"
-        style={{          
-          minHeight: '400px',
+        className="relative bg-white bg-[radial-gradient(100%_50%_at_50%_0%,rgba(0,163,255,0.13)_0,rgba(0,163,255,0)_50%,rgba(0,163,255,0)_100%)] p-8 rounded-lg w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/2 max-h-[90vh] overflow-y-auto"
+        style={{
+          minHeight: '600px',
         }}
-      >     
+      >
+
         {/* Close Button */}
         <button
           onClick={modalCloseHandler}
-          className="absolute top-4 right-4 cursor-pointer text-4xl text-gray-600 hover:text-gray-800 focus:outline-none transition-colors duration-200"
+          className="absolute top-4 right-4 cursor-pointer text-4xl text-gray-800 hover:text-gray-700 focus:outline-none transition-colors duration-200"
         >
           <IoCloseCircle />
         </button>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-4xl font-extrabold text-gray-900 leading-tight tracking-tight">{widget.label}</h2>
+          <h2 className="text-4xl font-extrabold text-gray-800 leading-tight tracking-tight">{widget.label}</h2>
         </div>
 
-        <p className="text-lg text-gray-600 font-light mb-6">{widget.description}</p>
+        <p className="text-lg text-gray-600 font-medium mb-6">{widget.description}</p>
 
         {!isLoading ? (
           <>
@@ -615,20 +636,37 @@ const Modal = ({
             <div className="space-y-6 mb-6">
               {widget.inputs?.map((input: any) => (
                 <div key={input.id}>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">{input.label}</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">{input.label}</label>
                   <input
                     type={input.type}
                     value={inputs[input.id]}
                     onChange={(e) => handleInputChange(input.id, input.type === 'number' ? +e.target.value : e.target.value)}
-                    className="w-full bg-transparent text-gray-800 text-sm border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 ease-in-out shadow-md hover:border-indigo-400"
+                    className="w-full bg-black/5 text-black text-sm rounded px-4 py-3 border border-black/10 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#10152f] focus:border-[#10152f] hover:ring-[0.5px] hover:ring-[#10152f] transition duration-300"
+                    placeholder={`Enter ${input.label}`}
                   />
                 </div>
               ))}
             </div>
 
-            <div className="space-y-6">
-              {widget.widget?.({ ...inputs })}
-            </div>
+            {outcomeLoader ? (
+              <div
+                className="relative flex justify-center py-10">
+                <PropagateLoader />
+              </div>
+            ) : null}
+            {!outcomeLoader && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{
+                  duration: 0.6,
+                  scale: { type: "spring", visualDuration: 0.5, bounce: 0.7 },
+                }}
+                className="py-4 px-4 rounded-xl border border-black/10 bg-[#e8faff] font-semibold">
+                <p className="text-xl font-extrabold">Outcome:</p>
+                {widget.widget?.({ ...inputs })}
+              </motion.div>
+            )}            
           </>
         ) : (
           <div className="flex justify-center items-center mt-12 space-x-4 animate-pulse">
@@ -644,7 +682,7 @@ const Modal = ({
 
 export default function Home() {
   const isSidebarEnabled = false;
-  const categories = ['Chemistry', 'Physics', 'DataTrees', 'Finance']
+  const categories = ['Science', 'Physics', 'DataTrees', 'Finance']
   type Category = typeof categories[number];
   const [category, setCategory] = useState<Category>('');
 
@@ -658,7 +696,103 @@ export default function Home() {
 
 
   return (
-    <div className={"flex grow flex-col min-h-dvh " + poppins.className}>
+    <div className={"flex grow flex-col min-h-dvh " + lato.className}>
+      <style>
+        {`
+        body,.modal-overlay {
+          background: linear-gradient(to bottom, #0b0b2b, #1b2735 70%, #090a0f);          
+        }
+
+        .stars {
+          width: 1px;
+          height: 1px;
+          position: absolute;
+          background: white;
+          box-shadow: 2vw 5vh 2px white, 10vw 8vh 2px white, 15vw 15vh 1px white,
+            22vw 22vh 1px white, 28vw 12vh 2px white, 32vw 32vh 1px white,
+            38vw 18vh 2px white, 42vw 35vh 1px white, 48vw 25vh 2px white,
+            53vw 42vh 1px white, 58vw 15vh 2px white, 63vw 38vh 1px white,
+            68vw 28vh 2px white, 73vw 45vh 1px white, 78vw 32vh 2px white,
+            83vw 48vh 1px white, 88vw 20vh 2px white, 93vw 52vh 1px white,
+            98vw 35vh 2px white, 5vw 60vh 1px white, 12vw 65vh 2px white,
+            18vw 72vh 1px white, 25vw 78vh 2px white, 30vw 85vh 1px white,
+            35vw 68vh 2px white, 40vw 82vh 1px white, 45vw 92vh 2px white,
+            50vw 75vh 1px white, 55vw 88vh 2px white, 60vw 95vh 1px white,
+            65vw 72vh 2px white, 70vw 85vh 1px white, 75vw 78vh 2px white,
+            80vw 92vh 1px white, 85vw 82vh 2px white, 90vw 88vh 1px white,
+            95vw 75vh 2px white;
+          animation: twinkle 8s infinite linear;
+        }
+
+        .shooting-star {
+          position: absolute;
+          width: 100px;
+          height: 2px;
+          background: linear-gradient(90deg, white, transparent);
+          animation: shoot 3s infinite ease-in;
+        }
+
+        .shooting-star:nth-child(1) {
+          top: 20%;
+          left: -100px;
+          animation-delay: 0s;
+        }
+
+        .shooting-star:nth-child(2) {
+          top: 35%;
+          left: -100px;
+          animation-delay: 1s;
+        }
+
+        .shooting-star:nth-child(3) {
+          top: 50%;
+          left: -100px;
+          animation-delay: 2s;
+        }
+
+        @keyframes twinkle {
+          0%,
+          100% {
+            opacity: 0.8;
+          }
+          50% {
+            opacity: 0.4;
+          }
+        }
+
+        @keyframes shoot {
+          0% {
+            transform: translateX(0) translateY(0) rotate(25deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(120vw) translateY(50vh) rotate(25deg);
+            opacity: 0;
+          }
+        }
+        .stars::after {
+          content: "";
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          background: white;
+          box-shadow: 8vw 12vh 2px white, 16vw 18vh 1px white, 24vw 25vh 2px white,
+            33vw 15vh 1px white, 41vw 28vh 2px white, 49vw 35vh 1px white,
+            57vw 22vh 2px white, 65vw 42vh 1px white, 73vw 28vh 2px white,
+            81vw 48vh 1px white, 89vw 32vh 2px white, 97vw 45vh 1px white,
+            3vw 68vh 2px white, 11vw 75vh 1px white, 19vw 82vh 2px white,
+            27vw 88vh 1px white, 35vw 72vh 2px white, 43vw 85vh 1px white,
+            51vw 92vh 2px white, 59vw 78vh 1px white;
+          animation: twinkle 6s infinite linear reverse;
+        }
+        `}
+      </style>
+      <div className="stars"></div>
+      <div className="shooting-star"></div>
+      <div className="shooting-star"></div>
+      <div className="shooting-star"></div>
+      <div className="shooting-star"></div>
+      <div className="shooting-star"></div>
       {/* Sidebar */}
       {isSidebarEnabled && (
         <aside className={`peer fixed bottom-0 top-0 z-30 md:z-20 flex flex-col border-zinc-300/25 bg-white py-6 ltr:border-r rtl:border-l dark:border-zinc-800/50 dark:bg-zinc-900 dark:text-white transition-all duration-300 ease-in-out 
@@ -670,7 +804,7 @@ export default function Home() {
       )}
 
       {/* Center Content */}
-      <div className={`flex flex-auto flex-col pb-20 bg-gradient-to-r from-yellow-50 to-white transition-all duration-300 ease-in-out 
+      <div className={`flex flex-auto flex-col z-1 pb-20 to-white transition-all duration-300 ease-in-out 
         ${isSidebarEnabled ? 'ltr:peer-[]:md:pl-[20rem] rtl:peer-[]:md:pr-[20rem]' : 'ltr:peer-[]:md:pl-[6.225em] rtl:peer-[]:md:pr-[6.225em]'}
         `}>
 
@@ -682,7 +816,7 @@ export default function Home() {
                 e.preventDefault()
                 setCategory('')
               }}
-              className="font-medium my-5 text-[38px] lg:text-[26px] md:text-[26px] sm:text-[26px] xsm:text-[26px] tracking-[0px] text-gray-800 ">
+              className="font-medium my-5 text-[38px] lg:text-[26px] md:text-[26px] sm:text-[26px] xsm:text-[26px] tracking-[0px] text-white ">
               SimuHub
             </a>
           </div>
@@ -695,10 +829,10 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Search here..."
-                  className="w-full appearance-none outline-none bg-transparent pl-10 pr-10 py-2 text-base text-black dark:text-white 
-                  border-b border-transparent
+                  className="w-full appearance-none outline-none bg-transparent pl-10 pr-10 py-2 text-base text-white dark:text-white 
+                  border-b-[0.2] border-gray-600
                   transition-all duration-300 ease-in-out
-                  focus:border-indigo-500 hover:border-indigo-400
+                  focus:border-gray-400 hover:border-gray-500
                   focus:ring-0
                   rounded-none
                   min-w-[22rem]"
@@ -741,11 +875,11 @@ export default function Home() {
                                 {React.cloneElement(category.icon, { className: `text-3xl ${category.iconColor}` })}
                               </div>
                               <div className="grow">
-                                <h2 className="text-2xl font-semibold text-gray-800">{category.title}</h2>
-                                <p className="mt-2 text-sm text-gray-600">{category.description}</p>
+                                <h2 className={`text-2xl font-semibold ${category.iconColor}`}>{category.title}</h2>
+                                <p className="mt-2 text-sm text-gray-400">{category.description}</p>
                               </div>
                             </div>
-                            <button className={`mt-auto self-end text-white py-2 px-4 rounded-lg transition duration-200 cursor-pointer ${category.buttonColor}`}>
+                            <button className={`mt-auto self-end text-white py-2 px-4 rounded transition duration-200 cursor-pointer ${category.buttonColor}`}>
                               {category.buttonText}
                             </button>
                           </div>
@@ -760,43 +894,43 @@ export default function Home() {
             </div>
           )}
 
-          {category == 'Chemistry' && (
+          {category == 'Science' && (
             <div className="w-full p-8">
               {/* Title */}
               <div className="mb-16 text-center">
                 <div className="flex gap-4 justify-center items-center">
-                  <IoIosArrowRoundBack onClick={() => setCategory('')} className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl hover:scale-110" />
+                  <IoIosArrowRoundBack onClick={() => setCategory('')} className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl text-gray-400 hover:scale-110" />
                   <h1 className={`text-5xl font-bold ${categoriesHome[category].iconColor} bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:text-white leading-tight`}>
-                    Chemistry Simulations
+                    Science Simulations
                   </h1>
                 </div>
-                <p className="mt-4 text-xl text-gray-700 dark:text-gray-400">
+                <p className="mt-4 text-xl text-gray-400">
                   Explore and interact with chemical models for a hands-on learning experience.
                 </p>
               </div>
 
               {/* Simulations List */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
-                {simulations.chemistry.map((sim) => (
+                {simulations.Science.map((sim) => (
                   <div
                     key={sim.id}
-                    className="flex flex-col justify-between p-6 bg-transparent rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
+                    className="flex flex-col justify-between p-6 bg-black/30 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
                   >
                     {/* Card Header with Icon */}
                     <div className="flex items-center space-x-4 mb-4">
-                      <div className={`w-12 h-12 text-gray-800 flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
+                      <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
                         {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
                       </div>
-                      <h2 className="text-xl font-semibold text-gray-900">{sim.label}</h2>
+                      <h2 className="text-xl font-semibold text-gray-400">{sim.label}</h2>
                     </div>
 
                     {/* Card Content */}
-                    <p className="text-gray-800 text-base mb-4">{sim.description}</p>
+                    <p className="text-gray-400 text-base mb-4">{sim.description}</p>
 
                     {/* Card Footer */}
                     <div className="flex justify-end items-center">
                       <button
-                        className="px-6 py-2 text-gray-800 cursor-pointer bg-gradient-to-r from-yellow-50 to-white hover:bg-gradient-to-r hover:from-yellow-100 hover:to-white rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105"
+                        className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].iconBg} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
                         onClick={(opn) => {
                           setWidget(sim)
                           openModal()
@@ -816,12 +950,12 @@ export default function Home() {
               {/* Title */}
               <div className="mb-16 text-center">
                 <div className="flex gap-4 justify-center items-center">
-                  <IoIosArrowRoundBack onClick={() => setCategory('')} className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl hover:scale-110" />
+                  <IoIosArrowRoundBack onClick={() => setCategory('')} className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl text-gray-400 hover:scale-110" />
                   <h1 className={`text-5xl font-bold ${categoriesHome[category].iconColor} bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:text-white leading-tight`}>
                     Physics Simulations
                   </h1>
                 </div>
-                <p className="mt-4 text-xl text-gray-700 dark:text-gray-400">
+                <p className="mt-4 text-xl text-gray-400">
                   Explore and interact with physical phenomena for a hands-on learning experience.
                 </p>
               </div>
@@ -831,23 +965,23 @@ export default function Home() {
                 {simulations.physics.map((sim) => (
                   <div
                     key={sim.id}
-                    className="flex flex-col justify-between p-6 bg-transparent rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
+                    className="flex flex-col justify-between p-6 bg-black/30 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
                   >
                     {/* Card Header with Icon */}
                     <div className="flex items-center space-x-4 mb-4">
-                      <div className={`w-12 h-12 text-gray-800 flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
+                      <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
                         {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
                       </div>
-                      <h2 className="text-xl font-semibold text-gray-900">{sim.label}</h2>
+                      <h2 className="text-xl font-semibold text-gray-400">{sim.label}</h2>
                     </div>
 
                     {/* Card Content */}
-                    <p className="text-gray-800 text-base mb-4">{sim.description}</p>
+                    <p className="text-gray-400 text-base mb-4">{sim.description}</p>
 
                     {/* Card Footer */}
                     <div className="flex justify-end items-center">
                       <button
-                        className="px-6 py-2 text-gray-800 cursor-pointer bg-gradient-to-r from-yellow-50 to-white hover:bg-gradient-to-r hover:from-yellow-100 hover:to-white rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105"
+                        className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].iconBg} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
                         onClick={(opn) => {
                           setWidget(sim)
                           openModal()
@@ -869,13 +1003,13 @@ export default function Home() {
                 <div className="flex gap-4 justify-center items-center">
                   <IoIosArrowRoundBack
                     onClick={() => setCategory('')}
-                    className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl hover:scale-110"
+                    className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl text-gray-400 hover:scale-110"
                   />
                   <h1 className={`text-5xl font-bold ${categoriesHome[category].iconColor} bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:text-white leading-tight`}>
                     Finance Simulations
                   </h1>
                 </div>
-                <p className="mt-4 text-xl text-gray-700 dark:text-gray-400">
+                <p className="mt-4 text-xl text-gray-400">
                   Explore and interact with financial models for a hands-on learning experience.
                 </p>
               </div>
@@ -885,23 +1019,23 @@ export default function Home() {
                 {simulations.finance.map((sim) => (
                   <div
                     key={sim.id}
-                    className="flex flex-col justify-between p-6 bg-transparent rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
+                    className="flex flex-col justify-between p-6 bg-black/30 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
                   >
                     {/* Card Header with Icon */}
                     <div className="flex items-center space-x-4 mb-4">
-                      <div className={`w-12 h-12 text-gray-800 flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
+                      <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
                         {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
                       </div>
-                      <h2 className="text-xl font-semibold text-gray-900">{sim.label}</h2>
+                      <h2 className="text-xl font-semibold text-gray-400">{sim.label}</h2>
                     </div>
 
                     {/* Card Content */}
-                    <p className="text-gray-800 text-base mb-4">{sim.description}</p>
+                    <p className="text-gray-400 text-base mb-4">{sim.description}</p>
 
                     {/* Card Footer */}
                     <div className="flex justify-end items-center">
                       <button
-                        className="px-6 py-2 text-gray-800 cursor-pointer bg-gradient-to-r from-yellow-50 to-white hover:bg-gradient-to-r hover:from-yellow-100 hover:to-white rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105"
+                        className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].iconBg} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
                         onClick={(opn) => {
                           setWidget(sim)
                           openModal()
@@ -923,13 +1057,13 @@ export default function Home() {
                 <div className="flex gap-4 justify-center items-center">
                   <IoIosArrowRoundBack
                     onClick={() => setCategory('')}
-                    className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl hover:scale-110"
+                    className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl text-gray-400 hover:scale-110"
                   />
                   <h1 className={`text-5xl font-bold ${categoriesHome[category].iconColor} bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:text-white leading-tight`}>
                     Data Trees Simulations
                   </h1>
                 </div>
-                <p className="mt-4 text-xl text-gray-700 dark:text-gray-400">
+                <p className="mt-4 text-xl text-gray-400">
                   Explore and interact with business models for a hands-on learning experience.
                 </p>
               </div>
@@ -939,23 +1073,23 @@ export default function Home() {
                 {simulations.dataTrees?.map((sim) => (
                   <div
                     key={sim.id}
-                    className="flex flex-col justify-between p-6 bg-transparent rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
+                    className="flex flex-col justify-between p-6 bg-black/30 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
                   >
                     {/* Card Header with Icon */}
                     <div className="flex items-center space-x-4 mb-4">
-                      <div className={`w-12 h-12 text-gray-800 flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
+                      <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
                         {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
                       </div>
-                      <h2 className="text-xl font-semibold text-gray-900">{sim.label}</h2>
+                      <h2 className="text-xl font-semibold text-gray-400">{sim.label}</h2>
                     </div>
 
                     {/* Card Content */}
-                    <p className="text-gray-800 text-base mb-4">{sim.description}</p>
+                    <p className="text-gray-400 text-base mb-4">{sim.description}</p>
 
                     {/* Card Footer */}
                     <div className="flex justify-end items-center">
                       <button
-                        className="px-6 py-2 text-gray-800 cursor-pointer bg-gradient-to-r from-yellow-50 to-white hover:bg-gradient-to-r hover:from-yellow-100 hover:to-white rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105"
+                        className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].iconBg} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
                         onClick={() => {
                           setWidget(sim)
                           openModal()
