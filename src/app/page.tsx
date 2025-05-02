@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from "motion/react"
 import debounce from "lodash.debounce";
 import { GiSoundOff, GiSoundOn } from "react-icons/gi";
 import Select from 'react-select';
+import Link from "next/link";
 
 const lato = Lato({
   display: 'swap',
@@ -818,7 +819,7 @@ export default function Home() {
                       padding: '2px 4px',
                       boxShadow: 'none',
                       color: '#1F2937', // dark gray text
-                      '&:hover': { borderColor: '#6366F1' },
+                      "&:hover": { borderColor: '#6366F1' },
                     }),
                     menu: (base: React.CSSProperties) => ({
                       ...base,
@@ -869,7 +870,7 @@ export default function Home() {
                   {/* Title */}
                   <div className="col-span-12 my-20 text-center">
                     <h1 className="mb-4 text-center text-5xl md:text-6xl font-extrabold uppercase tracking-tight bg-gradient-to-r bg-clip-text text-transparent from-lime-200 via-teal-200 to-cyan-200 hover:from-teal-300 hover:via-sky-300 hover:to-blue-300 transition duration-300 ease-in-out drop-shadow-md">
-                      Let's Get Started!
+                      Let&apos;s Get Started!
                     </h1>
                     <div className="text-center text-sm md:text-base text-white tracking-widest uppercase drop-shadow-sm">
                       Pick any app to dive into simulations
@@ -1228,8 +1229,8 @@ export default function Home() {
           © 2025 <span className="font-semibold">SimuHub</span>. All rights reserved.
         </p>
         <div className="text-sm text-gray-400">
-          <a href="/#" className="hover:text-sky-300 transition-colors duration-300">Privacy Policy</a> |
-          <a href="/#" className="hover:text-sky-300 transition-colors duration-300"> Terms of Service</a>
+          <Link href={"/"} className="hover:text-sky-300 transition-colors duration-300">Privacy Policy</Link>|
+          <Link href="/#" className="hover:text-sky-300 transition-colors duration-300"> Terms of Service</Link>
         </div>
       </footer>
 
