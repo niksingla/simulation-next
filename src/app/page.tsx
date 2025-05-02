@@ -4,13 +4,14 @@ import { Lato } from "next/font/google";
 import { FaAtom, FaBusinessTime, FaChartLine, FaFlask } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
 import { BeatLoader, PropagateLoader } from "react-spinners";
-import { CiSearch } from "react-icons/ci";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { IoCloseCircle } from "react-icons/io5";
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { motion } from "motion/react"
+import { AnimatePresence, motion } from "motion/react"
 import debounce from "lodash.debounce";
+import { GiSoundOff, GiSoundOn } from "react-icons/gi";
+import Select from 'react-select';
 
 const lato = Lato({
   display: 'swap',
@@ -330,7 +331,7 @@ const simulations = {
     },
   ],
 
-  dataTrees: [
+  decisionTrees: [
     {
       id: 'binary-tree-depth',
       label: 'Binary Tree Maximum Depth',
@@ -464,40 +465,40 @@ const categoriesHome = {
   Science: {
     title: 'Science',
     icon: <FaFlask />,
-    cardBg: 'bg-white/5 backdrop-blur-sm',
-    iconBg: 'bg-amber-500/20',
-    iconColor: 'text-amber-400',
-    buttonColor: 'bg-amber-500 hover:bg-amber-600',
+    cardBg: 'bg-white/10 backdrop-blur-lg border border-white/10',
+    iconBg: 'bg-sky-500/30',
+    iconColor: 'text-sky-300',
+    buttonColor: 'bg-sky-500 hover:bg-sky-600',
     description: 'Explore interactive Science models and simulations.',
     buttonText: 'Start Learning',
   },
   Physics: {
     title: 'Physics',
     icon: <FaAtom />,
-    cardBg: 'bg-white/5 backdrop-blur-sm',
-    iconBg: 'bg-indigo-500/20',
-    iconColor: 'text-indigo-400',
+    cardBg: 'bg-white/10 backdrop-blur-lg border border-white/10',
+    iconBg: 'bg-indigo-500/30',
+    iconColor: 'text-indigo-300',
     buttonColor: 'bg-indigo-500 hover:bg-indigo-600',
     description: 'Dive deep into physics simulations and experiments.',
     buttonText: 'Explore Now',
   },
-  DataTrees: {
-    title: 'Data Trees',
+  DecisionTrees: {
+    title: 'Decision Trees',
     icon: <FaBusinessTime />,
-    cardBg: 'bg-white/5 backdrop-blur-sm',
-    iconBg: 'bg-purple-500/20',
-    iconColor: 'text-purple-400',
-    buttonColor: 'bg-purple-500 hover:bg-purple-600',
+    cardBg: 'bg-white/10 backdrop-blur-lg border border-white/10',
+    iconBg: 'bg-violet-500/30',
+    iconColor: 'text-violet-300',
+    buttonColor: 'bg-violet-500 hover:bg-violet-600',
     description: 'Learn and visualize complex data structures and algorithms.',
     buttonText: 'Get Started',
   },
   Finance: {
     title: 'Finance',
     icon: <FaChartLine />,
-    cardBg: 'bg-white/5 backdrop-blur-sm',
-    iconBg: 'bg-emerald-500/20',
-    iconColor: 'text-emerald-400',
-    buttonColor: 'bg-emerald-500 hover:bg-emerald-600',
+    cardBg: 'bg-white/10 backdrop-blur-lg border border-white/10',
+    iconBg: 'bg-teal-500/30',
+    iconColor: 'text-teal-300',
+    buttonColor: 'bg-teal-500 hover:bg-teal-600',
     description: 'Master financial modeling and simulations.',
     buttonText: 'Start Exploring',
   },
@@ -518,6 +519,14 @@ const Modal = ({
   const [inputs, setInputs] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [outcomeLoader, setOutcomeLoader] = useState(true);
+  const [isAudioUnmute, setIsAudioUnmute] = useState<boolean>(true);
+  const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(true);
+
+
+  // Create a new audio element
+  const audio = new Audio('https://cdn.pixabay.com/download/audio/2023/08/26/audio_a6ee15a317.mp3?filename=sunflower-street-drumloop-85bpm-163900.mp3');
+
+  const audio2 = new Audio('https://cdn.pixabay.com/download/audio/2025/03/18/audio_959e630af0.mp3?filename=santur-guitar-melody-with-delay-315261.mp3');
 
   useEffect(() => {
     if (isShowModal) {
@@ -526,16 +535,49 @@ const Modal = ({
     }
     const timer = setTimeout(() => {
       setIsLoading(false);
+
       setTimeout(() => {
-        setOutcomeLoader(false)
+        setOutcomeLoader(false);
       }, 1000);
-    }, 3000);
+    }, 10000);
 
     return () => {
       clearTimeout(timer)
       document.body.classList.remove('overflow-hidden');
+
     };
   }, [isShowModal]);
+
+  useEffect(() => {
+    if (!isShowModal) return;
+
+    audio.muted = !isAudioUnmute;
+    audio2.muted = !isAudioUnmute;
+
+    if (outcomeLoader && audio.paused) {
+      audio.play();
+    } else if (!outcomeLoader && audio2.paused) {
+      audio2.play();
+    }
+
+    const timer = setTimeout(() => {
+      if (outcomeLoader) {
+        setIsLoading(false);
+        if(!audio.paused) audio.pause();
+
+        setTimeout(() => {
+          setOutcomeLoader(false);
+          audio2.play();
+        }, 1000);
+      }
+    }, 8000);
+
+    return () => {
+      clearTimeout(timer);
+      audio.pause();
+      audio2.pause();
+    };
+  }, [isAudioUnmute, isShowModal, outcomeLoader]);
 
 
   useEffect(() => {
@@ -548,6 +590,7 @@ const Modal = ({
   }, [widget])
 
   const modalCloseHandler = () => {
+    audio2.pause();
     confirmAlert({
       title: 'Are you sure?',
       message: 'Any progress made will be lost.',
@@ -591,9 +634,9 @@ const Modal = ({
     }));
     setOutcomeLoader(true);
     (debounce(() => {
-      setTimeout(()=>{
+      setTimeout(() => {
         setOutcomeLoader(false)
-      },1000)
+      }, 1000)
     }, 2000))();
   };
 
@@ -604,6 +647,19 @@ const Modal = ({
         transition: "opacity 1s ease-in-out",
       }}
     >
+      <div className="absolute top-4 right-4 z-10">
+        <button
+          onClick={() => setIsAudioUnmute(!isAudioUnmute)}
+          className="text-white bg-black/30 hover:bg-black/50 p-2 rounded-full transition duration-300"
+          title="Mute Audio"
+        >
+          {isAudioUnmute ? (
+            <GiSoundOn className="text-xl" />
+          ) : (
+            <GiSoundOff className="text-xl" />
+          )}
+        </button>
+      </div>
       <motion.div
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -611,7 +667,7 @@ const Modal = ({
           duration: 1,
           scale: { type: "spring", visualDuration: 1, bounce: 0.5 },
         }}
-        className="relative bg-white bg-[radial-gradient(100%_50%_at_50%_0%,rgba(0,163,255,0.13)_0,rgba(0,163,255,0)_50%,rgba(0,163,255,0)_100%)] p-8 rounded-lg w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/2 max-h-[90vh] overflow-y-auto"
+        className="relative bg-white/10 backdrop-blur-lg p-8 rounded-lg w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/2 max-h-[90vh] overflow-y-auto"
         style={{
           minHeight: '600px',
         }}
@@ -620,15 +676,15 @@ const Modal = ({
         {/* Close Button */}
         <button
           onClick={modalCloseHandler}
-          className="absolute top-4 right-4 cursor-pointer text-4xl text-gray-800 hover:text-gray-700 focus:outline-none transition-colors duration-200"
+          className="absolute top-4 right-4 cursor-pointer text-4xl text-white/80 hover:text-white focus:outline-none transition-colors duration-200"
         >
           <IoCloseCircle />
         </button>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-4xl font-extrabold text-gray-800 leading-tight tracking-tight">{widget.label}</h2>
+          <h2 className="text-4xl font-extrabold text-sky-200 leading-tight tracking-tight">{widget.label}</h2>
         </div>
 
-        <p className="text-lg text-gray-600 font-medium mb-6">{widget.description}</p>
+        <p className="text-lg text-white/80 font-medium mb-6">{widget.description}</p>
 
         {!isLoading ? (
           <>
@@ -636,12 +692,12 @@ const Modal = ({
             <div className="space-y-6 mb-6">
               {widget.inputs?.map((input: any) => (
                 <div key={input.id}>
-                  <label className="block text-sm font-medium text-gray-600 mb-2">{input.label}</label>
+                  <label className="block text-sm font-medium text-white/80 mb-2">{input.label}</label>
                   <input
                     type={input.type}
                     value={inputs[input.id]}
                     onChange={(e) => handleInputChange(input.id, input.type === 'number' ? +e.target.value : e.target.value)}
-                    className="w-full bg-black/5 text-black text-sm rounded px-4 py-3 border border-black/10 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#10152f] focus:border-[#10152f] hover:ring-[0.5px] hover:ring-[#10152f] transition duration-300"
+                    className="w-full bg-black/20 text-white/80 text-sm rounded px-4 py-3 border border-black/10 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#10152f] focus:border-[#10152f] hover:ring-[0.5px] hover:ring-[#10152f] transition duration-300"
                     placeholder={`Enter ${input.label}`}
                   />
                 </div>
@@ -649,8 +705,7 @@ const Modal = ({
             </div>
 
             {outcomeLoader ? (
-              <div
-                className="relative flex justify-center py-10">
+              <div className="relative flex justify-center py-10">
                 <PropagateLoader />
               </div>
             ) : null}
@@ -662,11 +717,12 @@ const Modal = ({
                   duration: 0.6,
                   scale: { type: "spring", visualDuration: 0.5, bounce: 0.7 },
                 }}
-                className="py-4 px-4 rounded-xl border border-black/10 bg-[#e8faff] font-semibold">
-                <p className="text-xl font-extrabold">Outcome:</p>
+                className="py-4 px-4 rounded-xl border border-black/10 bg-[#e8faff] font-semibold"
+              >
+                <p className="text-xl font-extrabold text-black">Outcome:</p>
                 {widget.widget?.({ ...inputs })}
               </motion.div>
-            )}            
+            )}
           </>
         ) : (
           <div className="flex justify-center items-center mt-12 space-x-4 animate-pulse">
@@ -675,6 +731,7 @@ const Modal = ({
         )}
       </motion.div>
 
+
     </div>
   ) : null;
 
@@ -682,10 +739,13 @@ const Modal = ({
 
 export default function Home() {
   const isSidebarEnabled = false;
-  const categories = ['Science', 'Physics', 'DataTrees', 'Finance']
-  type Category = typeof categories[number];
-  const [category, setCategory] = useState<Category>('');
-
+  const [category, setCategory] = useState<string>('');
+  const categorySelect = Object.entries(categoriesHome).map(item => {
+    return {
+      value: item[0],
+      label: item[1].title
+    }
+  });
 
   const [isShowModal, setIsShowModal] = useState(false)
   const [widget, setWidget] = useState({})
@@ -693,106 +753,29 @@ export default function Home() {
   const openModal = () => {
     setIsShowModal(true);
   };
+  const [isVisible, setIsVisible] = useState(true);
+  const [SelectComponent, setSelectComponent] = useState<any>(null);
 
+  useEffect(() => {
+    import('react-select').then((mod) => {
+      setSelectComponent(() => mod.default);
+    });
+  }, []);
+
+  if (!SelectComponent) return null;
 
   return (
     <div className={"flex grow flex-col min-h-dvh " + lato.className}>
       <style>
         {`
-        body,.modal-overlay {
-          background: linear-gradient(to bottom, #0b0b2b, #1b2735 70%, #090a0f);          
-        }
-
-        .stars {
-          width: 1px;
-          height: 1px;
-          position: absolute;
-          background: white;
-          box-shadow: 2vw 5vh 2px white, 10vw 8vh 2px white, 15vw 15vh 1px white,
-            22vw 22vh 1px white, 28vw 12vh 2px white, 32vw 32vh 1px white,
-            38vw 18vh 2px white, 42vw 35vh 1px white, 48vw 25vh 2px white,
-            53vw 42vh 1px white, 58vw 15vh 2px white, 63vw 38vh 1px white,
-            68vw 28vh 2px white, 73vw 45vh 1px white, 78vw 32vh 2px white,
-            83vw 48vh 1px white, 88vw 20vh 2px white, 93vw 52vh 1px white,
-            98vw 35vh 2px white, 5vw 60vh 1px white, 12vw 65vh 2px white,
-            18vw 72vh 1px white, 25vw 78vh 2px white, 30vw 85vh 1px white,
-            35vw 68vh 2px white, 40vw 82vh 1px white, 45vw 92vh 2px white,
-            50vw 75vh 1px white, 55vw 88vh 2px white, 60vw 95vh 1px white,
-            65vw 72vh 2px white, 70vw 85vh 1px white, 75vw 78vh 2px white,
-            80vw 92vh 1px white, 85vw 82vh 2px white, 90vw 88vh 1px white,
-            95vw 75vh 2px white;
-          animation: twinkle 8s infinite linear;
-        }
-
-        .shooting-star {
-          position: absolute;
-          width: 100px;
-          height: 2px;
-          background: linear-gradient(90deg, white, transparent);
-          animation: shoot 3s infinite ease-in;
-        }
-
-        .shooting-star:nth-child(1) {
-          top: 20%;
-          left: -100px;
-          animation-delay: 0s;
-        }
-
-        .shooting-star:nth-child(2) {
-          top: 35%;
-          left: -100px;
-          animation-delay: 1s;
-        }
-
-        .shooting-star:nth-child(3) {
-          top: 50%;
-          left: -100px;
-          animation-delay: 2s;
-        }
-
-        @keyframes twinkle {
-          0%,
-          100% {
-            opacity: 0.8;
+          body,.modal-overlay {
+            background: linear-gradient(135deg, #3c67c1, #99c2e2);
           }
-          50% {
-            opacity: 0.4;
+          button{
+            cursor:pointer;
           }
-        }
-
-        @keyframes shoot {
-          0% {
-            transform: translateX(0) translateY(0) rotate(25deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateX(120vw) translateY(50vh) rotate(25deg);
-            opacity: 0;
-          }
-        }
-        .stars::after {
-          content: "";
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          background: white;
-          box-shadow: 8vw 12vh 2px white, 16vw 18vh 1px white, 24vw 25vh 2px white,
-            33vw 15vh 1px white, 41vw 28vh 2px white, 49vw 35vh 1px white,
-            57vw 22vh 2px white, 65vw 42vh 1px white, 73vw 28vh 2px white,
-            81vw 48vh 1px white, 89vw 32vh 2px white, 97vw 45vh 1px white,
-            3vw 68vh 2px white, 11vw 75vh 1px white, 19vw 82vh 2px white,
-            27vw 88vh 1px white, 35vw 72vh 2px white, 43vw 85vh 1px white,
-            51vw 92vh 2px white, 59vw 78vh 1px white;
-          animation: twinkle 6s infinite linear reverse;
-        }
         `}
       </style>
-      <div className="stars"></div>
-      <div className="shooting-star"></div>
-      <div className="shooting-star"></div>
-      <div className="shooting-star"></div>
-      <div className="shooting-star"></div>
-      <div className="shooting-star"></div>
       {/* Sidebar */}
       {isSidebarEnabled && (
         <aside className={`peer fixed bottom-0 top-0 z-30 md:z-20 flex flex-col border-zinc-300/25 bg-white py-6 ltr:border-r rtl:border-l dark:border-zinc-800/50 dark:bg-zinc-900 dark:text-white transition-all duration-300 ease-in-out 
@@ -816,26 +799,60 @@ export default function Home() {
                 e.preventDefault()
                 setCategory('')
               }}
-              className="font-medium my-5 text-[38px] lg:text-[26px] md:text-[26px] sm:text-[26px] xsm:text-[26px] tracking-[0px] text-white ">
+              className="font-extrabold my-5 text-[38px] lg:text-[26px] md:text-[26px] sm:text-[26px] xsm:text-[26px] tracking-[0px] text-white ">
               SimuHub
             </a>
           </div>
           <div>
-            <div className="relative">
+            <div className="">
               <div className="relative z-20 max-sm:hidden">
-                <div className="absolute top-1/2 transform -translate-y-1/2 left-2 flex items-center">
-                  <CiSearch className="text-gray-500" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search here..."
-                  className="w-full appearance-none outline-none bg-transparent pl-10 pr-10 py-2 text-base text-white dark:text-white 
-                  border-b-[0.2] border-gray-600
-                  transition-all duration-300 ease-in-out
-                  focus:border-gray-400 hover:border-gray-500
-                  focus:ring-0
-                  rounded-none
-                  min-w-[22rem]"
+                <SelectComponent
+                  className="text-sm shadow-sm w-[200px]"
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (base: React.CSSProperties) => ({
+                      ...base,
+                      backgroundColor: 'rgba(255, 255, 255, 0.85)',
+                      borderRadius: '0.5rem',
+                      borderColor: '#D1D5DB',
+                      padding: '2px 4px',
+                      boxShadow: 'none',
+                      color: '#1F2937', // dark gray text
+                      '&:hover': { borderColor: '#6366F1' },
+                    }),
+                    menu: (base: React.CSSProperties) => ({
+                      ...base,
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: '0.5rem',
+                      marginTop: 4,
+                      zIndex: 10,
+                    }),
+                    option: (base: React.CSSProperties, state: any) => ({
+                      ...base,
+                      backgroundColor: state.isSelected
+                        ? '#6366F1'
+                        : state.isFocused
+                          ? '#E0E7FF'
+                          : 'transparent',
+                      color: state.isSelected ? '#fff' : '#1F2937',
+                      cursor: 'pointer',
+                    }),
+                    placeholder: (base: React.CSSProperties) => ({
+                      ...base,
+                      color: '#6B7280',
+                    }),
+                    singleValue: (base: React.CSSProperties) => ({
+                      ...base,
+                      color: '#1F2937',
+                    }),
+                  }}
+                  placeholder="Select a category"
+                  value={categorySelect.find(option => option.value === category) || null}
+                  onChange={(selectedOption: { value: string }) =>
+                    setCategory(selectedOption ? selectedOption.value : '')
+                  }
+                  options={categorySelect}
+                  isClearable={true}
                 />
               </div>
             </div>
@@ -851,11 +868,11 @@ export default function Home() {
                 <div className="grid w-full grid-cols-12 gap-6 last:[&>*]:mb-10">
                   {/* Title */}
                   <div className="col-span-12 my-20 text-center">
-                    <h1 className="mb-4 text-center text-5xl md:text-6xl font-bold animate-pulse bg-gradient-to-r bg-clip-text text-transparent from-red-400 via-yellow-400 to-green-400 hover:from-purple-500 hover:via-pink-500 hover:to-yellow-500 transition duration-1000 ease-in-out">
-                      Select your app
+                    <h1 className="mb-4 text-center text-5xl md:text-6xl font-extrabold uppercase tracking-tight bg-gradient-to-r bg-clip-text text-transparent from-lime-200 via-teal-200 to-cyan-200 hover:from-teal-300 hover:via-sky-300 hover:to-blue-300 transition duration-300 ease-in-out drop-shadow-md">
+                      Let's Get Started!
                     </h1>
-                    <div className="text-center text-2xl text-gray-500">
-                      Select any app you want to start your simulations with
+                    <div className="text-center text-sm md:text-base text-white tracking-widest uppercase drop-shadow-sm">
+                      Pick any app to dive into simulations
                     </div>
                   </div>
 
@@ -868,18 +885,20 @@ export default function Home() {
                           setCategory(key);
                         }}
                       >
-                        <div className={`flex flex-col ${category.cardBg} rounded-xl shadow-lg hover:scale-105 transition-all duration-300 ease-in-out min-h-full`}>
+                        <div className="flex flex-col bg-white/10 backdrop-blur-md rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-transform duration-300 ease-in-out min-h-full border border-white/25">
                           <div className="flex flex-col p-6 flex-grow">
-                            <div className="flex items-center gap-6 mb-4">
-                              <div className={`flex-shrink-0 rounded-full ${category.iconBg} p-6`}>
+                            <div className="flex items-center gap-6 mb-5">
+                              <div className={`flex-shrink-0 rounded-full ${category.iconBg} p-4`}>
                                 {React.cloneElement(category.icon, { className: `text-3xl ${category.iconColor}` })}
                               </div>
                               <div className="grow">
-                                <h2 className={`text-2xl font-semibold ${category.iconColor}`}>{category.title}</h2>
-                                <p className="mt-2 text-sm text-gray-400">{category.description}</p>
+                                <h2 className="text-2xl font-medium text-white leading-tight">{category.title}</h2>
+                                <p className="mt-2 text-sm text-gray-200">{category.description}</p>
                               </div>
                             </div>
-                            <button className={`mt-auto self-end text-white py-2 px-4 rounded transition duration-200 cursor-pointer ${category.buttonColor}`}>
+                            <button
+                              className={`mt-auto self-end py-2 px-5 rounded-full text-sm font-bold text-white ${category.buttonColor} hover:bg-opacity-90 transition-all ease-in-out`}
+                            >
                               {category.buttonText}
                             </button>
                           </div>
@@ -895,226 +914,325 @@ export default function Home() {
           )}
 
           {category == 'Science' && (
-            <div className="w-full p-8">
-              {/* Title */}
-              <div className="mb-16 text-center">
-                <div className="flex gap-4 justify-center items-center">
-                  <IoIosArrowRoundBack onClick={() => setCategory('')} className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl text-gray-400 hover:scale-110" />
-                  <h1 className={`text-5xl font-bold ${categoriesHome[category].iconColor} bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:text-white leading-tight`}>
-                    Science Simulations
-                  </h1>
-                </div>
-                <p className="mt-4 text-xl text-gray-400">
-                  Explore and interact with chemical models for a hands-on learning experience.
-                </p>
-              </div>
-
-              {/* Simulations List */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
-                {simulations.Science.map((sim) => (
-                  <div
-                    key={sim.id}
-                    className="flex flex-col justify-between p-6 bg-black/30 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
-                  >
-                    {/* Card Header with Icon */}
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
-                        {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
+            <AnimatePresence>
+              {isVisible && (
+                <motion.div
+                  key={category}
+                  initial={{ opacity: 0, x: 1200 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -1200 }}
+                  transition={{
+                    duration: 0.2,
+                    ease: "easeInOut",
+                  }}
+                  className="w-full p-8"
+                >
+                  {/* Title */}
+                  <div className="mb-16 text-center">
+                    <div className="flex flex-col items-center text-center gap-6">
+                      <div className="flex items-center gap-6">
+                        <IoIosArrowRoundBack
+                          onClick={() => {
+                            setIsVisible(false);
+                            setTimeout(() => {
+                              setCategory('');
+                              setIsVisible(true);
+                            }, 200);
+                          }}
+                          className="cursor-pointer text-6xl text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] transition-transform duration-300 hover:scale-125"
+                        />
+                        <h1 className="text-5xl md:text-6xl font-extrabold tracking-wide text-sky-200">
+                          Science Simulations
+                        </h1>
                       </div>
-                      <h2 className="text-xl font-semibold text-gray-400">{sim.label}</h2>
-                    </div>
-
-                    {/* Card Content */}
-                    <p className="text-gray-400 text-base mb-4">{sim.description}</p>
-
-                    {/* Card Footer */}
-                    <div className="flex justify-end items-center">
-                      <button
-                        className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].iconBg} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
-                        onClick={(opn) => {
-                          setWidget(sim)
-                          openModal()
-                        }}
-                      >
-                        Start
-                      </button>
+                      <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl">
+                        Explore and interact with dynamic scientific models for an engaging, hands-on learning experience.
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                  {/* Simulations List */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+                    {simulations.Science?.map((sim) => (
+                      <div
+                        key={sim.id}
+                        className="flex flex-col justify-between p-6 bg-white/10 backdrop-blur-lg rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
+                      >
+                        {/* Card Header with Icon */}
+                        <div className="flex items-center space-x-4 mb-4">
+                          <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
+                            {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
+                          </div>
+                          <h2 className="text-xl font-semibold text-sky-300">{sim.label}</h2>
+                        </div>
+
+                        {/* Card Content */}
+                        <p className="text-gray-200 text-base mb-4">{sim.description}</p>
+
+                        {/* Card Footer */}
+                        <div className="flex justify-end items-center">
+                          <button
+                            className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].buttonColor} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
+                            onClick={() => {
+                              setWidget(sim);
+                              openModal();
+                            }}
+                          >
+                            Start
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           )}
 
           {category == 'Physics' && (
-            <div className="w-full p-8">
-              {/* Title */}
-              <div className="mb-16 text-center">
-                <div className="flex gap-4 justify-center items-center">
-                  <IoIosArrowRoundBack onClick={() => setCategory('')} className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl text-gray-400 hover:scale-110" />
-                  <h1 className={`text-5xl font-bold ${categoriesHome[category].iconColor} bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:text-white leading-tight`}>
-                    Physics Simulations
-                  </h1>
-                </div>
-                <p className="mt-4 text-xl text-gray-400">
-                  Explore and interact with physical phenomena for a hands-on learning experience.
-                </p>
-              </div>
-
-              {/* Simulations List */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
-                {simulations.physics.map((sim) => (
-                  <div
-                    key={sim.id}
-                    className="flex flex-col justify-between p-6 bg-black/30 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
-                  >
-                    {/* Card Header with Icon */}
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
-                        {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
+            <AnimatePresence>
+              {isVisible && (
+                <motion.div
+                  key={category}
+                  initial={{ opacity: 0, x: 1200 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -1200 }}
+                  transition={{
+                    duration: 0.2,
+                    ease: "easeInOut",
+                  }}
+                  className="w-full p-8"
+                >
+                  {/* Title */}
+                  <div className="mb-16 text-center">
+                    <div className="flex flex-col items-center text-center gap-6">
+                      <div className="flex items-center gap-6">
+                        <IoIosArrowRoundBack
+                          onClick={() => {
+                            setIsVisible(false);
+                            setTimeout(() => {
+                              setCategory('');
+                              setIsVisible(true);
+                            }, 200);
+                          }}
+                          className="cursor-pointer text-6xl text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] transition-transform duration-300 hover:scale-125"
+                        />
+                        <h1 className="text-5xl md:text-6xl font-extrabold tracking-wide text-indigo-600">
+                          Physics Simulations
+                        </h1>
                       </div>
-                      <h2 className="text-xl font-semibold text-gray-400">{sim.label}</h2>
-                    </div>
-
-                    {/* Card Content */}
-                    <p className="text-gray-400 text-base mb-4">{sim.description}</p>
-
-                    {/* Card Footer */}
-                    <div className="flex justify-end items-center">
-                      <button
-                        className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].iconBg} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
-                        onClick={(opn) => {
-                          setWidget(sim)
-                          openModal()
-                        }}
-                      >
-                        Start
-                      </button>
+                      <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl">
+                        Explore and interact with physical phenomena for a hands-on learning experience.
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                  {/* Simulations List */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+                    {simulations.physics?.map((sim) => (
+                      <div
+                        key={sim.id}
+                        className="flex flex-col justify-between p-6 bg-white/10 backdrop-blur-lg rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
+                      >
+                        {/* Card Header with Icon */}
+                        <div className="flex items-center space-x-4 mb-4">
+                          <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
+                            {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
+                          </div>
+                          <h2 className="text-xl font-semibold text-sky-300">{sim.label}</h2>
+                        </div>
+
+                        {/* Card Content */}
+                        <p className="text-gray-200 text-base mb-4">{sim.description}</p>
+
+                        {/* Card Footer */}
+                        <div className="flex justify-end items-center">
+                          <button
+                            className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].buttonColor} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
+                            onClick={() => {
+                              setWidget(sim);
+                              openModal();
+                            }}
+                          >
+                            Start
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           )}
 
           {category == 'Finance' && (
-            <div className="w-full p-8">
-              {/* Title */}
-              <div className="mb-16 text-center">
-                <div className="flex gap-4 justify-center items-center">
-                  <IoIosArrowRoundBack
-                    onClick={() => setCategory('')}
-                    className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl text-gray-400 hover:scale-110"
-                  />
-                  <h1 className={`text-5xl font-bold ${categoriesHome[category].iconColor} bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:text-white leading-tight`}>
-                    Finance Simulations
-                  </h1>
-                </div>
-                <p className="mt-4 text-xl text-gray-400">
-                  Explore and interact with financial models for a hands-on learning experience.
-                </p>
-              </div>
-
-              {/* Simulations List */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
-                {simulations.finance.map((sim) => (
-                  <div
-                    key={sim.id}
-                    className="flex flex-col justify-between p-6 bg-black/30 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
-                  >
-                    {/* Card Header with Icon */}
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
-                        {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
+            <AnimatePresence>
+              {isVisible && (
+                <motion.div
+                  key={category}
+                  initial={{ opacity: 0, x: 1200 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -1200 }}
+                  transition={{
+                    duration: 0.2,
+                    ease: "easeInOut",
+                  }}
+                  className="w-full p-8">
+                  {/* Title */}
+                  <div className="mb-16 text-center">
+                    <div className="flex flex-col items-center text-center gap-6">
+                      <div className="flex items-center gap-6">
+                        <IoIosArrowRoundBack
+                          onClick={() => {
+                            setIsVisible(false);
+                            setTimeout(() => {
+                              setCategory('');
+                              setIsVisible(true);
+                            }, 200);
+                          }}
+                          className="cursor-pointer text-6xl text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] transition-transform duration-300 hover:scale-125"
+                        />
+                        <h1 className="text-5xl md:text-6xl font-extrabold tracking-wide text-emerald-400">
+                          Finance Simulations
+                        </h1>
                       </div>
-                      <h2 className="text-xl font-semibold text-gray-400">{sim.label}</h2>
-                    </div>
-
-                    {/* Card Content */}
-                    <p className="text-gray-400 text-base mb-4">{sim.description}</p>
-
-                    {/* Card Footer */}
-                    <div className="flex justify-end items-center">
-                      <button
-                        className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].iconBg} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
-                        onClick={(opn) => {
-                          setWidget(sim)
-                          openModal()
-                        }}
-                      >
-                        Start
-                      </button>
+                      <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl">
+                        Explore and interact with financial models for a hands-on learning experience.
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                  {/* Simulations List */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+                    {simulations.finance?.map((sim) => (
+                      <div
+                        key={sim.id}
+                        className="flex flex-col justify-between p-6 bg-white/10 backdrop-blur-lg rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
+                      >
+                        {/* Card Header with Icon */}
+                        <div className="flex items-center space-x-4 mb-4">
+                          <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
+                            {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
+                          </div>
+                          <h2 className="text-xl font-semibold text-sky-300">{sim.label}</h2>
+                        </div>
+
+                        {/* Card Content */}
+                        <p className="text-gray-200 text-base mb-4">{sim.description}</p>
+
+                        {/* Card Footer */}
+                        <div className="flex justify-end items-center">
+                          <button
+                            className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].buttonColor} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
+                            onClick={() => {
+                              setWidget(sim);
+                              openModal();
+                            }}
+                          >
+                            Start
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           )}
 
-          {category == 'DataTrees' && (
-            <div className="w-full p-8">
-              {/* Title */}
-              <div className="mb-16 text-center">
-                <div className="flex gap-4 justify-center items-center">
-                  <IoIosArrowRoundBack
-                    onClick={() => setCategory('')}
-                    className="cursor-pointer ease-in-out transform transition-all duration-300 text-3xl text-gray-400 hover:scale-110"
-                  />
-                  <h1 className={`text-5xl font-bold ${categoriesHome[category].iconColor} bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 dark:text-white leading-tight`}>
-                    Data Trees Simulations
-                  </h1>
-                </div>
-                <p className="mt-4 text-xl text-gray-400">
-                  Explore and interact with business models for a hands-on learning experience.
-                </p>
-              </div>
-
-              {/* Simulations List */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
-                {simulations.dataTrees?.map((sim) => (
-                  <div
-                    key={sim.id}
-                    className="flex flex-col justify-between p-6 bg-black/30 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
-                  >
-                    {/* Card Header with Icon */}
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
-                        {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
+          {category === 'DecisionTrees' && (
+            <AnimatePresence>
+              {isVisible && (
+                <motion.div
+                  key={category}
+                  initial={{ opacity: 0, x: 1200 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -1200 }}
+                  transition={{
+                    duration: 0.2,
+                    ease: "easeInOut",
+                  }}
+                  className="w-full p-8"
+                >
+                  {/* Title */}
+                  <div className="mb-16 text-center">
+                    <div className="flex flex-col items-center text-center gap-6">
+                      <div className="flex items-center gap-6">
+                        <IoIosArrowRoundBack
+                          onClick={() => {
+                            setIsVisible(false);
+                            setTimeout(() => {
+                              setCategory('');
+                              setIsVisible(true);
+                            }, 200);
+                          }}
+                          className="cursor-pointer text-6xl text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] transition-transform duration-300 hover:scale-125"
+                        />
+                        <h1 className="text-5xl md:text-6xl font-extrabold tracking-wide text-purple-400">
+                          Decision Trees Simulations
+                        </h1>
                       </div>
-                      <h2 className="text-xl font-semibold text-gray-400">{sim.label}</h2>
+                      <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl">
+                        Explore and interact with business models for a hands-on learning experience.
+                      </p>
                     </div>
 
-                    {/* Card Content */}
-                    <p className="text-gray-400 text-base mb-4">{sim.description}</p>
-
-                    {/* Card Footer */}
-                    <div className="flex justify-end items-center">
-                      <button
-                        className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].iconBg} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
-                        onClick={() => {
-                          setWidget(sim)
-                          openModal()
-                        }}
-                      >
-                        Start
-                      </button>
-                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
+
+                  {/* Simulations List */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+                    {simulations.decisionTrees?.map((sim) => (
+                      <div
+                        key={sim.id}
+                        className="flex flex-col justify-between p-6 bg-white/10 backdrop-blur-lg rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105"
+                      >
+                        {/* Card Header with Icon */}
+                        <div className="flex items-center space-x-4 mb-4">
+                          <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full ${categoriesHome[category].iconBg}`}>
+                            {React.cloneElement(categoriesHome[category].icon, { className: `w-6 h-6 ${categoriesHome[category].iconColor}` })}
+                          </div>
+                          <h2 className="text-xl font-semibold text-sky-300">{sim.label}</h2>
+                        </div>
+
+                        {/* Card Content */}
+                        <p className="text-gray-200 text-base mb-4">{sim.description}</p>
+
+                        {/* Card Footer */}
+                        <div className="flex justify-end items-center">
+                          <button
+                            className={`px-6 py-2 text-white cursor-pointer ${categoriesHome[category].buttonColor} rounded-full text-lg font-medium tracking-wide shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105`}
+                            onClick={() => {
+                              setWidget(sim);
+                              openModal();
+                            }}
+                          >
+                            Start
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           )}
         </main>
 
 
         {/* Simulation Modal Conten */}
-        <Modal isShowModal={isShowModal} widget={widget} closeModal={() => setIsShowModal(false)} />
+        {isShowModal && (
+          <Modal isShowModal={isShowModal} widget={widget} closeModal={() => setIsShowModal(false)} />
+        )}
 
-
-        {/* Footer */}
-        {/* <footer className="flex justify-between gap-4 p-6 text-sm">
-
-        </footer> */}
       </div>
+      {/* Footer */}
+      <footer className="flex justify-center items-center gap-4 p-6 bg-black/50 backdrop-blur-md rounded-t-xl border-t border-white/20">
+        <p className="text-sm text-gray-300">
+          © 2025 <span className="font-semibold">SimuHub</span>. All rights reserved.
+        </p>
+        <div className="text-sm text-gray-400">
+          <a href="/#" className="hover:text-sky-300 transition-colors duration-300">Privacy Policy</a> |
+          <a href="/#" className="hover:text-sky-300 transition-colors duration-300"> Terms of Service</a>
+        </div>
+      </footer>
+
     </div>
   );
 }
